@@ -25,38 +25,52 @@ int main()
 		}
 		return true;
 		});
-
+	
+	// scene1으로 다시 이동하는 문
 	auto door2 = Object::create("Images/문-왼쪽-열림.png", scene2, 320, 270, true);
-
 	door2->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
 		scene1->enter();
 		return true;
 		});
 
-	// 문을 숨긴다. 불을 꺼서 문이 보이면 클릭 후 게임을 종료한다.
-	auto door3 = Object::create("Images/문-오른쪽-닫힘.png", scene2, 910, 270, false);
+	// 거울 뒤에 문을 숨긴다
+	auto door3 = Object::create("Images/문-오른쪽-닫힘.png", scene2, 910, 270);
+
+	auto mirror = Object::create("Images/거울.png", scene2, 830, 210, true);
+	mirror->setScale(0.6f);
+	auto mirror_moved = false;
+
+	mirror->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
+		if (mirror_moved == false) {
+			showMessage("거울에 글씨가 적혀 있다. \n 1. 개미 2. 사자 3. 사람 \n 무슨 공통점이 있을까?");
+		}
+		else {
+			mirror->locate(scene2, 1000, 210);
+			showMessage("스르륵 ~ 문이 나타났다. ");
+		}
+		return true;
+	});
+
+	mirror->setOnKeypadCallback([&](ObjectPtr object)->bool {
+		showMessage("거울이 움직이는 것 같다.");
+		mirror_moved = true;
+		return true;
+		});
+
 	door3->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
 		endGame(); //문이 열린 상태
 		return true;
 		});
 
 
-	// 스위치를 만든다. 불이 꺼지면 문이 보인다.
-	auto button = Object::create("Images/스위치.png", scene2, 880, 440);
-	auto lighted = true;
-	button->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
-		if (lighted) { //켜진 상태 
-			scene2->setLight(0.2f);
-			door3->show();
-			lighted = false;
-		}
-		else { //꺼진 상태
-			scene2->setLight(1.0f);
-			door3->hide();
-			lighted = true;
-		}
+	// 키패드를 만든다.
+	auto keypad = Object::create("Images/키패드.png", scene2, 750, 420);
+	keypad->setScale(1.5f);
+	keypad->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
+		showKeypad("642", mirror);
 		return true;
-		});
+		}); 
+
 
 
 	// 2. 게임을 시작한다.
