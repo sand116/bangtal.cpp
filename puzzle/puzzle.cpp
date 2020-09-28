@@ -1,133 +1,129 @@
 ﻿#include <bangtal.h>
 #include <iostream>
-#include <string>
+#include <ctime>
 
 using namespace bangtal;
 using namespace std;
-
-int map[3][3] = { {1,2,3},{4,5,6},{7,8,9} };
-int bx = 2, by = 2;		//빈 칸의 위치 x행, y열
-
-class Piece {
-public:
-	int centerX, centerY;
-	ObjectPtr piece;
-	string path;
-	Piece(string loc, ScenePtr scene, int cx, int cy) : path(loc), centerX(cx), centerY(cy) {
-		piece = Object::create(path, scene, centerX, centerY, true);
-	}
-};
-
-
-//전달받은 횟수만큼 퍼즐판을 초기화 하는 함수
-void shuffle(int n) {
-	int random[4][2] = { {0,-1},{0,1},{1,0},{-1,0} };
-	for (int i = 0;i < n; ) {
-		move(bx + random[rand() % 4][0], by + random[rand() % 4][1]);
-	}
-}
-
-//전달받은 키값으로 퍼즐을 이동시키는 함수
-void move( int cx, int cy) {
-
-	//배열 밖에서의 이동을 방지
-	if (cy == -1 || cy == 3)
-		return;
-	if (cx == -1 || cx == 3)
-		return;
-
-	if (bx + 1 == cy) {
-		map[bx][by] = map[bx + 1][by];
-		map[++bx][by] = 0;
-	}
-	case down:
-		map[bx][by] = map[bx - 1][by];
-		map[--bx][by] = 0;
-		break;
-	case left:
-		map[bx][by] = map[bx][by + 1];
-		map[bx][++by] = 0;
-		break;
-	case right:
-		map[bx][by] = map[bx][by - 1];
-		map[bx][--by] = 0;
-		break;
-	default:
-		return;
-	}
-	++nMove;
-}
-
-//퍼즐 게임이 끝났는지 확인하는 함수, 끝이면 true를 아니면 false를 반환합니다.
-
-bool isDone() {
-	int n = 1, x, y;
-	for (x = 0; x < 3; ++x) {
-		for (y = 0; y < 3; ++y) {
-			if (x == 2 && y == 2)	//map[2][1]까지 완성된 것이 확인됐을 경우
-				return true;
-			else if (n != map[x][y])
-				return false;
-			++n;
-		}
-	}
-}
-
 
 int main()
 {
 	setGameOption(GameOption::GAME_OPTION_INVENTORY_BUTTON, false);
 	setGameOption(GameOption::GAME_OPTION_MESSAGE_BOX_BUTTON, false);
-	auto scene = Scene::create("퍼즐", "Images/원본.png");
 
+	srand((unsigned int)time(NULL));
 
-	Piece pieces[9] = {
-		Piece("Images/1.jpg",scene,0,0), Piece("Images/2.jpg",scene,0,0), Piece("Images/3.jpg",scene,0,0),
-		Piece("Images/4.jpg",scene,0,0), Piece("Images/5.jpg",scene,0,0), Piece("Images/6.jpg",scene,0,0),
-		Piece("Images/7.jpg",scene,0,0), Piece("Images/8.jpg",scene,0,0), Piece("Images/9.jpg",scene,0,0) };
+	auto scene = Scene::create("뽀로로", "images/배경.jpg");
+	ObjectPtr game_board[9];
+	ObjectPtr init_board[9];
+	int blank = 8;
 
-	//퍼즐 판 배열
+	// 시간 설정
+	time_t start_time;
+	auto counttimer = Timer::create(30.f); // 문제 풀이 시간 
 
-	int cx, cy; // 클릭된 위치 x행, y열 
-	int nMove =0 ;	//이동 횟수
+	// 게임 버튼
+	auto startButton = Object::create("Images/start.png", scene, 590, 70);
+	auto endButton = Object::create("Images/end.png", scene, 590, 20);
+	showTimer(counttimer);
 
-	auto timer = Timer::create(180.f);
-	showTimer(timer);
-
-	ObjectPtr startButton = Object::create("Images/start.png", scene, 590, 70);
-	startButton->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool s{
-
-		// start game
+	//random 생성을 위한 타이머
+	auto count = 0;
+	auto timer = Timer::create(0.1f);
+	
+	// start game
+	startButton->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
 		startButton->hide();
-		scene->setImage("Images/배경.jpg");
-		timer->set(180.f);
+		endButton->hide();
+		counttimer->start();
+		start_time = time(NULL); // 현재 시간 알아옴
+		game_board[blank]->hide();
 		timer->start();
-		shuffle(30);
 		return true;
-});
+	});
 
-	for (int i = 0; i < 9; i++) {
-		pieces[i].piece->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
-			if (isDone()) {
-				timer->stop();
-				showMessage("게임 성공");
-				endGame();
-			}
-			for (int x = 0; x < 3; x++) {
-				for (int y = 0; y < 3; y++)
-					if (map[x][y] == i) {
-						cx = x;
-						cy = y;
-					}
-				move( cx, cy);
-				return true;
-			}});
-	}
-	timer->setOnTimerCallback([&](TimerPtr timer)->bool {
-		showMessage("게임 종료");
+	// end Game
+	endButton->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
+		endGame();
 		return true;
 		});
 
+	// time over
+	counttimer->setOnTimerCallback([&](TimerPtr timer)->bool {
+		startButton->setImage("Images/restart.png");
+		startButton->show();
+		endButton->show();
+		showMessage("Time Over!!!");
+		return true;
+	});
+
+
+	for (int i = 0; i < 9; i++) {
+		game_board[i] = Object::create("Images/" + to_string(i + 1) + ".jpg", scene, 188 + (i % 3) * 302, 435 -(i/3)*150);
+		init_board[i] = game_board[i];
+		game_board[i]->setOnMouseCallback([&](ObjectPtr object, int, int, MouseAction)->bool{
+			int j = 0;
+			for (j = 0; j < 9; j++) {
+				if (game_board[j] == object) break;}
+
+			if ((j % 3 > 0 && j - 1 == blank) ||
+				(j % 3 < 3 && j + 1 == blank) ||
+				(j > 2 && j - 3 == blank) ||
+				(j < 7 && j + 3 == blank)
+				) {
+				game_board[j]->locate(scene, 188 + (blank % 3) * 302, 435 - (blank / 3) * 150);
+				game_board[blank]->locate(scene, 188 + (j % 3) * 302, 435 - (j / 3) * 150);
+				game_board[j] = game_board[blank];
+				game_board[blank] = object;
+				blank = j;
+			}
+	
+			for (int k = 0; k < 9; k++) {
+				if (game_board[k] != init_board[k]) break;
+				if (k == 8) {
+					auto end_time = time(NULL);
+					startButton->setImage("Images/restart.png");
+					startButton->show();
+					endButton->show();
+					timer->stop();
+					string buf = "성공! "+ to_string(difftime(end_time, start_time)) + "초 걸렸습니다";
+					showMessage(buf.c_str());
+				}
+			}
+			return true;
+
+		});
+	}
+	
+
+	timer->setOnTimerCallback([&](TimerPtr timer)->bool {
+		int j = 0;
+		do {
+			switch (rand() % 4) {
+			case 0: j = blank - 1; break;
+			case 1: j = blank + 1; break;
+			case 2: j = blank - 3; break;
+			case 3: j = blank + 3; break;
+			}
+		}
+		while ((j < 0 || j > 8 || !((j % 3 > 0 && j - 1 == blank) ||
+				(j % 3 < 3 && j + 1 == blank) ||
+				(j > 2 && j - 3 == blank) ||
+				(j < 7 && j + 3 == blank))));
+
+			game_board[j]->locate(scene, 188 + (blank % 3) * 302, 435 - (blank / 3) * 150);
+			game_board[blank]->locate(scene, 188 + (j % 3) * 302, 435 - (j / 3) * 150);
+			auto object = game_board[j];
+			game_board[j] = game_board[blank];
+			game_board[blank] = object;
+			blank = j;
+			count++;
+
+			if (count < 5) {
+				timer->set(0.1f);
+				timer->start();
+			}
+			return true;
+	});
+	
 	startGame(scene);
-	return 0;
 }
