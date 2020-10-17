@@ -1,6 +1,7 @@
 ## TETRIS
 
 	1분 안에 테트리스 3줄 이상 격파 시 성공하도록 처리하는 게임
+	a키 -> 왼쪽이동 d키 ->오른쪽 이동 w키 -> 도형 회전
 ### DEMO
 
 [![Video Label](http://img.youtube.com/vi/rkTuG1u6weA/0.jpg)](https://youtu.be/rkTuG1u6weA)
