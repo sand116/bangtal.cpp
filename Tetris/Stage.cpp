@@ -4,7 +4,7 @@
 
 
 CStage::CStage() :
-	m_scene(NULL),score(0)
+	m_scene(NULL),score(3)
 {
 }
 
@@ -66,8 +66,7 @@ bool CStage::Render()
 		}
 
 	}
-	if (score == 1) return true;
-	return false;
+	return score == 0;
 	
 }
 
@@ -97,7 +96,7 @@ void CStage::AddBlock(CShape* pShape, const POSITION& tPos)
 				// 위의 블럭들을 한칸씩 내려준다.
 				if (bLine)
 				{
-					score++;
+					score--;
 					
 					//현재줄부터 윗줄까지 싸그리 내려준다.
 					for (int k = tPos.y - (3 - i); k > 0; k--)
