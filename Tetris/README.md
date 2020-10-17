@@ -3,8 +3,7 @@
 	1분 안에 테트리스 3줄 이상 격파 시 성공하도록 처리하는 게임 ( 변수 변경 시 
 ### DEMO
 
-[![Video Label](https://youtu.be/rkTuG1u6weA)
-
+[![Video Label](http://img.youtube.com/vi/rkTuG1u6weA/0.jpg)](https://youtu.be/rkTuG1u6weA)
 
 ### main함수
 
