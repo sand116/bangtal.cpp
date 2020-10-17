@@ -1,7 +1,9 @@
 ## TETRIS
 
 	1분 안에 테트리스 3줄 이상 격파 시 성공하도록 처리하는 게임 ( 변수 변경 시 
+### DEMO
 
+<iframe width="640" height="360" src="https://youtu.be/rkTuG1u6weA" frameborder="0" gesture="media" allowfullscreen=""></iframe>
 ### main함수
 
 		- 배경화면 초기화 -> 배경화면에 있는 스타트버튼을 클릭하면, 스테이지 관리자 클래스 생성하고 init함수 호출
