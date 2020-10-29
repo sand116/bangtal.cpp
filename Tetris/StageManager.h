@@ -6,6 +6,7 @@ using namespace bangtal;
 
 class CStageManager
 {
+	//밖에서 생성자를 호출하지 못하도록 막음 
 private:
 	CStageManager();
 	~CStageManager();
@@ -14,6 +15,7 @@ private:
 	static CStageManager* m_pInst;
 
 public:
+	//static 메서드 함수 
 	static CStageManager* GenInst() {
 		// staic 객체 반환
 		if (!m_pInst) m_pInst = new CStageManager;
@@ -27,5 +29,6 @@ private:
 public :
 	bool Init(const ScenePtr scene);
 	bool Run(); 
+	// cosnt 메서드 
 	class CStage* GetCurStage() const;
 };

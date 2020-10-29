@@ -1,6 +1,7 @@
 #include "StageManager.h"
 #include "Stage.h"
 
+//static 멤버 변수 정의 분리 
 CStageManager* CStageManager::m_pInst = NULL; 
 
 CStageManager::CStageManager() : m_pCurStage(NULL) // 스테이지 지역 변수 초기화

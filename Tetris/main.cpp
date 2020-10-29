@@ -85,7 +85,7 @@ int main(void)
 	{
 
 		//화면 안의 현재 도형 좌표 변경 + 현재 도형이 바닥에 닿았을 시, 스테이지 좌표 블럭처리 후 다음 도형으로 변경처리
-		// 화면 위로 블럭이 넘어간 경우
+		// 화면 위로 블럭이 넘어간  경우
 		if (!CShapeManager::GenInst()->Update())
 		{
 			m_repeatTimer->stop();

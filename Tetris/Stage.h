@@ -4,6 +4,7 @@
 using namespace bangtal;
 class CStage
 {
+	// 해당 클래스 밖에서 선언 가능
 public:
 	CStage();
 	~CStage();

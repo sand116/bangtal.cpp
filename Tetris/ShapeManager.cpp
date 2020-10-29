@@ -12,6 +12,7 @@
 #include <windows.h>
 #include <bangtal>
 using namespace bangtal;
+
 CShapeManager* CShapeManager::m_pInst = NULL;
 
 CShapeManager::CShapeManager() :

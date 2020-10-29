@@ -16,6 +16,7 @@ CStage::~CStage()
 bool CStage::Init(const ScenePtr scene)
 {	
 	m_scene = scene;
+
 	//스테이지 내부 변수 초기화 15x10
 	for (int i = 0; i < STAGE_HEIGHT; i++)
 	{

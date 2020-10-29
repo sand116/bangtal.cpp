@@ -1,42 +1,81 @@
-﻿#include <bangtal.h>
+﻿#include <bangtal>
 #include <iostream>
-#include <ctime>
+#include <time.h>
+#include "Board.h"
 
 using namespace bangtal;
 using namespace std;
+
+ScenePtr scene = nullptr;
+
 
 int main()
 {
 	setGameOption(GameOption::GAME_OPTION_INVENTORY_BUTTON, false);
 	setGameOption(GameOption::GAME_OPTION_MESSAGE_BOX_BUTTON, false);
-
 	srand((unsigned int)time(NULL));
 
-	auto scene = Scene::create("뽀로로", "images/배경.jpg");
-	ObjectPtr game_board[9];
-	ObjectPtr init_board[9];
-	int blank = 8;
 
-	// 시간 설정
-	time_t start_time;
+	// 원래 방탈출라이브러리 1280 x 720 
+	scene = Scene::create("뽀로로", "images/배경.jpg");
+
+	// 오브젝트 1 시간 설정
+	time_t start_time; // 시작 시간 설정
 	auto counttimer = Timer::create(30.f); // 문제 풀이 시간 
 
-	// 게임 버튼
+	// 오브젝트 2 게임 버튼
 	auto startButton = Object::create("Images/start.png", scene, 590, 70);
 	auto endButton = Object::create("Images/end.png", scene, 590, 20);
 	showTimer(counttimer);
 
-	//random 생성을 위한 타이머
+	// while문을 대체하는 타이머
 	auto count = 0;
 	auto timer = Timer::create(0.1f);
-	
-	// start game
+
+	//보드 
+	Board::getInst()->init(scene);
+	for (int i = 0; i < 9; i++) {
+		// 각 오브젝트마다 모두 콜백 함수 정의 
+		Board::getInst()->getObject(i)->setOnMouseCallback([&](ObjectPtr object, int, int, MouseAction)->bool {
+		int j = 0;
+
+		// 클릭된 오브젝트를 콜백이 받아오면, 보드판의 오브젝트와 주소 비교 
+		for (j = 0; j < 9; j++)
+		{
+			if (Board::getInst()->getObject(j) == object) break;
+		}
+
+		// 클릭된 오브젝트 근처에 블랭크 확인
+		if (Board::getInst()->check(j)) {
+			// 위치 변경 - 블랭크 위치로 <-> 블랭크는 해당 도형 위치로 변경
+			Board::getInst()->swap(j);
+		
+		}
+		//변경하고 나서 -> 다 맞췄는지 확인하기 
+		if(Board::getInst()->compare())
+		{	auto end_time = time(NULL);
+				startButton->setImage("Images/restart.png");
+				startButton->show();
+				endButton->show();
+				timer->stop();// 타이머 스탑해주기 
+				string buf = "성공! " + to_string(difftime(end_time, start_time)) + "초 걸렸습니다";
+					//showMessage 는 char* 타입만 받음 
+				showMessage(buf.c_str());
+		}
+		return true;
+	});
+	}
+
+	//start game -> 마우스 콜백 사용 
 	startButton->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
 		startButton->hide();
 		endButton->hide();
+
 		counttimer->start();
 		start_time = time(NULL); // 현재 시간 알아옴
-		game_board[blank]->hide();
+
+		// blank만 하얗게 처리 
+		Board::getInst()->getObject(8)->hide();
 		timer->start();
 		return true;
 	});
@@ -45,7 +84,7 @@ int main()
 	endButton->setOnMouseCallback([&](ObjectPtr object, int x, int y, MouseAction action)->bool {
 		endGame();
 		return true;
-		});
+	});
 
 	// time over
 	counttimer->setOnTimerCallback([&](TimerPtr timer)->bool {
@@ -57,46 +96,13 @@ int main()
 	});
 
 
-	for (int i = 0; i < 9; i++) {
-		game_board[i] = Object::create("Images/" + to_string(i + 1) + ".jpg", scene, 188 + (i % 3) * 302, 435 -(i/3)*150);
-		init_board[i] = game_board[i];
-		game_board[i]->setOnMouseCallback([&](ObjectPtr object, int, int, MouseAction)->bool{
-			int j = 0;
-			for (j = 0; j < 9; j++) {
-				if (game_board[j] == object) break;}
 
-			if ((j % 3 > 0 && j - 1 == blank) ||
-				(j % 3 < 3 && j + 1 == blank) ||
-				(j > 2 && j - 3 == blank) ||
-				(j < 7 && j + 3 == blank)
-				) {
-				game_board[j]->locate(scene, 188 + (blank % 3) * 302, 435 - (blank / 3) * 150);
-				game_board[blank]->locate(scene, 188 + (j % 3) * 302, 435 - (j / 3) * 150);
-				game_board[j] = game_board[blank];
-				game_board[blank] = object;
-				blank = j;
-			}
-	
-			for (int k = 0; k < 9; k++) {
-				if (game_board[k] != init_board[k]) break;
-				if (k == 8) {
-					auto end_time = time(NULL);
-					startButton->setImage("Images/restart.png");
-					startButton->show();
-					endButton->show();
-					timer->stop();
-					string buf = "성공! "+ to_string(difftime(end_time, start_time)) + "초 걸렸습니다";
-					showMessage(buf.c_str());
-				}
-			}
-			return true;
-
-		});
-	}
-	
-
+	// while 문을 대체 타이머가 종료되면 호출되는 콜백 
 	timer->setOnTimerCallback([&](TimerPtr timer)->bool {
 		int j = 0;
+		int blank = Board::getInst()->getBlank();
+		//블랭크 위치를 뭘로 변경할지 선택
+		
 		do {
 			switch (rand() % 4) {
 			case 0: j = blank - 1; break;
@@ -105,24 +111,18 @@ int main()
 			case 3: j = blank + 3; break;
 			}
 		}
-		while ((j < 0 || j > 8 || !((j % 3 > 0 && j - 1 == blank) ||
-				(j % 3 < 3 && j + 1 == blank) ||
-				(j > 2 && j - 3 == blank) ||
-				(j < 7 && j + 3 == blank))));
+		//해당 예외처리 넘기기
+		while (j < 0 || j > 8 || !Board::getInst()->check(j));
+		Board::getInst()->swap(j);
 
-			game_board[j]->locate(scene, 188 + (blank % 3) * 302, 435 - (blank / 3) * 150);
-			game_board[blank]->locate(scene, 188 + (j % 3) * 302, 435 - (j / 3) * 150);
-			auto object = game_board[j];
-			game_board[j] = game_board[blank];
-			game_board[blank] = object;
-			blank = j;
-			count++;
-
-			if (count < 5) {
-				timer->set(0.1f);
-				timer->start();
-			}
-			return true;
+		// 5번만 재시작하기 위해서
+		count++;
+		// 반복을 위해서 콜백함수안에서 다시 호출해줘야함
+		if (count < 5) {
+			timer->set(0.1f);
+			timer->start();
+		}
+		return true;
 	});
 	
 	startGame(scene);
